@@ -161,27 +161,32 @@ function pt(id,x,y,label){ return {type:'pt',id,x,y,label}; }
 function arr(id,kind,x1,y1,x2,y2){ return {type:'arr',id,kind,x1,y1,x2,y2}; }
 const steps = {
   1:{spaces:true},
-  2:{spaces:true, els:[pt('u1',230,460,'u')]},
-  3:{spaces:true, els:[pt('u1',230,460,'u'), pt('au1',450,460,'α·u')]},
-  4:{spaces:true, els:[pt('u1',230,460,'u'), pt('au1',450,460,'α·u'),
-                       pt('Lau1',450,150,'L(α·u)'),
-                       arr('aU','teal',450,454,450,156)]},
-  5:{spaces:true, els:[pt('u1',230,460,'u'), pt('au1',450,460,'α·u'),
-                       pt('Lau1',450,150,'L(α·u)'), pt('Lu1',230,150,'L(u)'),
-                       arr('aU','teal',450,454,450,156),
-                       arr('a1','magenta',230,454,230,156)]},
-  6:{spaces:true, els:[pt('u1',230,460,'u'), pt('au1',450,460,'α·u'),
-                       pt('Lau1',450,150,'L(α·u)'), pt('Lu1',230,150,'L(u)'),
-                       pt('aLu1',450,100,'α·L(u)'),
-                       arr('aU','teal',450,454,450,156),
-                       arr('a1','magenta',230,454,230,156),
-                       arr('a2','magenta',236,150,444,100)]},
-  7:{spaces:true, showEq:true, els:[pt('u1',230,460,'u'), pt('au1',450,460,'α·u'),
-                       pt('Lau1',450,150,'L(α·u) = α·L(u)'), pt('Lu1',230,150,'L(u)'),
-                       pt('aLu1',450,100,'α·L(u)'),
-                       arr('aU','teal',450,454,450,156),
-                       arr('a1','magenta',230,454,230,156),
-                       arr('a2','magenta',236,150,444,100)]}
+  2:{spaces:true, els:[pt('u1',200,460,'u')]},
+  3:{spaces:true, els:[pt('u1',200,460,'u'), pt('au1',450,460,'α·u'),
+                       arr('aH','teal',206,460,444,460)]},
+  4:{spaces:true, els:[pt('u1',200,460,'u'), pt('au1',450,460,'α·u'),
+                       pt('Lau1',550,150,'L(α·u)'),
+                       arr('aH','teal',206,460,444,460),
+                       arr('aU','teal',450,454,550,156)]},
+  5:{spaces:true, els:[pt('u1',200,460,'u'), pt('au1',450,460,'α·u'),
+                       pt('Lau1',550,150,'L(α·u)'), pt('Lu1',200,150,'L(u)'),
+                       arr('aH','teal',206,460,444,460),
+                       arr('aU','teal',450,454,550,156),
+                       arr('a1','magenta',200,454,200,156)]},
+  6:{spaces:true, els:[pt('u1',200,460,'u'), pt('au1',450,460,'α·u'),
+                       pt('Lau1',550,150,'L(α·u)'), pt('Lu1',200,150,'L(u)'),
+                       pt('aLu1',550,100,'α·L(u)'),
+                       arr('aH','teal',206,460,444,460),
+                       arr('aU','teal',450,454,550,156),
+                       arr('a1','magenta',200,454,200,156),
+                       arr('a2','magenta',206,150,544,100)]},
+  7:{spaces:true, showEq:true, els:[pt('u1',200,460,'u'), pt('au1',450,460,'α·u'),
+                       pt('Lau1',550,150,'L(α·u) = α·L(u)'), pt('Lu1',200,150,'L(u)'),
+                       pt('aLu1',550,100,'α·L(u)'),
+                       arr('aH','teal',206,460,444,460),
+                       arr('aU','teal',450,454,550,156),
+                       arr('a1','magenta',200,454,200,156),
+                       arr('a2','magenta',206,150,544,100)]}
 };
 
 /* שכבות SVG */
@@ -211,7 +216,7 @@ function labelOf(name){ return name==='poly'?'x²':(name==='exp'?'eˣ':((name===
 function computePanel(){
   const f1=f1Sel.value;
   const alpha=parseFloat(alphaInput.value)||2;
-  const alphaStr = alpha===1?'':alpha===-1?'−':(alpha<0?`(${alpha})`:`${alpha}`);
+  const alphaStr = alpha===1?'':alpha===-1?'−':(alpha<0?`(${Number.isInteger(alpha)?alpha:alpha.toFixed(1)})`:`${Number.isInteger(alpha)?alpha:alpha.toFixed(1)}`);
   const y1=(f1==='general')?'u(x)':labelOf(f1), y1p=(f1==='general')?'u′(x)':d1(f1), y1pp=(f1==='general')?'u″(x)':d2(f1);
   
   // L(α·u)
@@ -236,7 +241,7 @@ function render(step){
   const s=steps[step]; if(!s) return;
   const f1=f1Sel.value;
   const alpha=parseFloat(alphaInput.value)||2;
-  const alphaStr = Math.abs(alpha-1)<0.01?'':Math.abs(alpha+1)<0.01?'−':(alpha<0?`(${alpha.toFixed(1)})`:`${alpha.toFixed(1)}`);
+  const alphaStr = Math.abs(alpha-1)<0.01?'':Math.abs(alpha+1)<0.01?'−':(alpha<0?`(${Number.isInteger(alpha)?alpha:alpha.toFixed(1)})`:`${Number.isInteger(alpha)?alpha:alpha.toFixed(1)}`);
   const L1=(f1!=='general');
   
   const mapLabel=(lab)=>{
@@ -244,8 +249,8 @@ function render(step){
     if(lab==='α·u'&&L1) return `${alphaStr}·${labelOf(f1)}`;
     if(lab==='L(u)'&&L1) return `L(${labelOf(f1)})`;
     if(lab==='L(α·u)'&&L1) return `L(${alphaStr}·${labelOf(f1)})`;
-    if(lab==='α·L(u)'&&L1) return `${alphaStr}·L(${labelOf(f1)})`;
     if(lab==='L(α·u) = α·L(u)'&&L1) return `L(${alphaStr}·${labelOf(f1)}) = ${alphaStr}·L(${labelOf(f1)})`;
+    if(lab==='α·L(u)'&&L1) return `${alphaStr}·L(${labelOf(f1)})`;
     if(lab==='α·u') return `${alphaStr}·u`;
     if(lab==='α·L(u)') return `${alphaStr}·L(u)`;
     return lab;
