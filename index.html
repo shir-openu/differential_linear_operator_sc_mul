@@ -45,7 +45,7 @@
   .space-boundary{fill:none;stroke:var(--space);stroke-width:2;stroke-dasharray:8 6;opacity:.95}
   .node{fill:#e2e8f0}
   .math-text{fill:#e2e8f0;font:400 30px/1.2 system-ui,sans-serif;text-anchor:middle;dominant-baseline:central}
-  .label-purple{fill:var(--purple);font-weight:400;paint-order:stroke fill;stroke:#0b1220;stroke-width:4px;stroke-linejoin:round}
+  .label-purple{fill:var(--purple);font-weight:400;paint-order:stroke fill;stroke:#0b1220;stroke-width:4px;stroke-linejoin:round;direction:ltr;unicode-bidi:embed}
   .label-purple.highlight{animation:pulse 2s ease-in-out 4}
   @keyframes pulse{0%,100%{opacity:1;filter:drop-shadow(0 0 0px var(--purple))} 50%{opacity:0.6;filter:drop-shadow(0 0 12px var(--purple))}}
   .eq-green{fill:var(--green);font-weight:400;animation:blink 3s ease-in-out 3}
@@ -211,14 +211,22 @@ function d1(name){ switch(name){ case'sin':return'cos(x)'; case'cos':return'−s
 function d2(name){ switch(name){ case'sin':return'−sin(x)'; case'cos':return'−cos(x)'; case'exp':return'eˣ'; case'poly':return'2';  default:return"u″(x)"; } }
 function labelOf(name){ return name==='poly'?'x²':(name==='exp'?'eˣ':((name==='sin'||name==='cos')?name+'(x)':'u')); }
 
+function formatAlpha(alpha){
+  const actualAlpha = Number.isInteger(alpha) ? alpha : alpha.toFixed(1);
+  if(alpha === 1) return '';
+  if(alpha === -1) return '−';
+  if(alpha < 0) return `(${actualAlpha})`;
+  return actualAlpha;
+}
+
 function computePanel(){
   const f1=f1Sel.value;
   const alpha=parseFloat(alphaInput.value)||2;
-  const displayAlpha = Number.isInteger(alpha) ? alpha : alpha.toFixed(1);
-  const alphaStr = alpha===1?'':alpha===-1?'−':(alpha<0?`(${displayAlpha})`:`${displayAlpha}`);
+  const alphaStr = formatAlpha(alpha);
   const y1=(f1==='general')?'u(x)':labelOf(f1), y1p=(f1==='general')?'u′(x)':d1(f1), y1pp=(f1==='general')?'u″(x)':d2(f1);
   
   // L(α·u)
+  const displayAlpha = formatAlpha(alpha);
   const au = (f1==='general')?`${displayAlpha}·u(x)`:`${alphaStr}·${labelOf(f1)}`;
   const aup = (f1==='general')?`${displayAlpha}·u′(x)`:`${alphaStr}·${d1(f1)}`;
   const aupp = (f1==='general')?`${displayAlpha}·u″(x)`:`${alphaStr}·${d2(f1)}`;
@@ -244,23 +252,20 @@ function render(step){
   const s=steps[step]; if(!s) return;
   const f1=f1Sel.value;
   const alpha=parseFloat(alphaInput.value)||2;
-  const alphaStr = Math.abs(alpha-1)<0.01?'':Math.abs(alpha+1)<0.01?'−':(alpha<0?`(${Number.isInteger(alpha)?alpha:alpha.toFixed(1)})`:`${Number.isInteger(alpha)?alpha:alpha.toFixed(1)}`);
+  const alphaStr = formatAlpha(alpha);
   const L1=(f1!=='general');
   
   const mapLabel=(lab)=>{
-    const actualAlpha = Number.isInteger(alpha) ? alpha : alpha.toFixed(1);
-    const displayAlpha = alpha === 1 ? '' : alpha === -1 ? '−' : (alpha < 0 ? `(${actualAlpha})` : actualAlpha);
-    
     if(lab==='u'&&L1) return labelOf(f1);
-    if(lab==='α·u'&&L1) return `${displayAlpha}·${labelOf(f1)}`;
-    if(lab==='α·u') return `${displayAlpha}·u`;
+    if(lab==='α·u'&&L1) return `${alphaStr}·${labelOf(f1)}`;
+    if(lab==='α·u') return `${alphaStr}·u`;
     if(lab==='L(u)'&&L1) return `L(${labelOf(f1)})`;
-    if(lab==='L(α·u)'&&L1) return `L(${displayAlpha}·${labelOf(f1)})`;
-    if(lab==='α·L(u)'&&L1) return `${displayAlpha}·L(${labelOf(f1)})`;
-    if(lab==='α·L(u)') return `${displayAlpha}·L(u)`;
-    if(lab==='L(α·u) = α·L(u)'&&L1) return `L(${displayAlpha}·${labelOf(f1)}) = ${displayAlpha}·L(${labelOf(f1)})`;
-    if(lab==='L(α·u) = α·L(u)') return `L(${displayAlpha}·u) = ${displayAlpha}·L(u)`;
-    if(lab==='L(α·u)') return `L(${displayAlpha}·u)`;
+    if(lab==='L(α·u)'&&L1) return `L(${alphaStr}·${labelOf(f1)})`;
+    if(lab==='α·L(u)'&&L1) return `${alphaStr}·L(${labelOf(f1)})`;
+    if(lab==='α·L(u)') return `${alphaStr}·L(u)`;
+    if(lab==='L(α·u) = α·L(u)'&&L1) return `L(${alphaStr}·${labelOf(f1)}) = ${alphaStr}·L(${labelOf(f1)})`;
+    if(lab==='L(α·u) = α·L(u)') return `L(${alphaStr}·u) = ${alphaStr}·L(u)`;
+    if(lab==='L(α·u)') return `L(${alphaStr}·u)`;
     return lab;
   };
 
@@ -301,7 +306,7 @@ function render(step){
 
   if(s.showEq){
     const alpha=parseFloat(alphaInput.value)||2;
-    const displayAlpha = Number.isInteger(alpha) ? alpha : alpha.toFixed(1);
+    const displayAlpha = formatAlpha(alpha);
     const eqText = `L(${displayAlpha}·u) = ${displayAlpha}·L(u)`;
     const eq=document.createElementNS('http://www.w3.org/2000/svg','text');
     eq.setAttribute('x',400); eq.setAttribute('y',36); eq.setAttribute('class','math-text eq-green');
