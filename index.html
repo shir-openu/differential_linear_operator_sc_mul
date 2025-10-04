@@ -252,14 +252,15 @@ function render(step){
     const displayAlpha = alpha === 1 ? '' : alpha === -1 ? '−' : (alpha < 0 ? `(${actualAlpha})` : actualAlpha);
     
     if(lab==='u'&&L1) return labelOf(f1);
-    if(lab==='α·u'&&L1) return `${alphaStr}·${labelOf(f1)}`;
-    if(lab==='α·u') return `${alphaStr}·u`;
+    if(lab==='α·u'&&L1) return `${displayAlpha}·${labelOf(f1)}`;
+    if(lab==='α·u') return `${displayAlpha}·u`;
     if(lab==='L(u)'&&L1) return `L(${labelOf(f1)})`;
-    if(lab==='L(α·u)'&&L1) return `L(${alphaStr}·${labelOf(f1)})`;
-    if(lab==='α·L(u)'&&L1) return `${alphaStr}·L(${labelOf(f1)})`;
-    if(lab==='α·L(u)') return `${alphaStr}·L(u)`;
+    if(lab==='L(α·u)'&&L1) return `L(${displayAlpha}·${labelOf(f1)})`;
+    if(lab==='α·L(u)'&&L1) return `${displayAlpha}·L(${labelOf(f1)})`;
+    if(lab==='α·L(u)') return `${displayAlpha}·L(u)`;
     if(lab==='L(α·u) = α·L(u)'&&L1) return `L(${displayAlpha}·${labelOf(f1)}) = ${displayAlpha}·L(${labelOf(f1)})`;
     if(lab==='L(α·u) = α·L(u)') return `L(${displayAlpha}·u) = ${displayAlpha}·L(u)`;
+    if(lab==='L(α·u)') return `L(${displayAlpha}·u)`;
     return lab;
   };
 
