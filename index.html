@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>אופרטור דיפרנציאלי לינארי — כפל בסקלר (מצב כהה)</title>
+<style>
+  :root{
+    --bg:#0b1220; --ink:#e5e7eb; --muted:#94a3b8;
+    --panel:#0f172a; --panel-2:#111827; --border:#1f2937; --border-soft:#12213a;
+    --stage-w: 1200px;
+    --teal:#11a8a0; --magenta:#f472b6; --purple:#a78bfa; --green:#22c55e;
+    --space:#94a3b8;
+  }
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Noto Sans";}
+  header{border-bottom:1px solid var(--border); background:linear-gradient(180deg,#0b1220 0%,#0c1426 100%)}
+  .wrap{max-width:var(--stage-w); margin:0 auto; padding:10px 14px;}
+  .title{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .title h1{font-size:18px;margin:0}
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .controls button,.controls select,.controls input{
+    font:inherit;padding:6px 10px;border:1px solid var(--border);
+    border-radius:8px;background:#0b1424;color:var(--ink);cursor:pointer;
+    box-shadow:0 0 0 1px var(--border-soft) inset}
+  .controls button:hover{background:#0e1a2c}
+  .controls button.blink,.controls select.blink,.controls input.blink{animation:controlBlink 1.5s ease-in-out 2}
+
+  @keyframes controlBlink{0%,100%{box-shadow:0 0 0 1px var(--border-soft) inset} 50%{box-shadow:0 0 15px var(--purple),0 0 0 2px var(--purple) inset}}
+  .note{color:var(--muted); font-size:13px}
+  main{padding:14px 0;}
+  .grid3{display:grid;grid-template-columns:280px minmax(500px,1fr) 320px; gap:14px;}
+  @media (max-width:1024px){ .grid3{grid-template-columns:1fr} }
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;transition:box-shadow 0.3s ease}
+  .card.flash{animation:cardFlash 1s ease-out}
+  .card.pulse{animation:cardPulse 2s ease-in-out 4}
+  @keyframes cardFlash{0%{box-shadow:0 0 20px var(--purple)} 100%{box-shadow:0 0 0px var(--purple)}}
+  @keyframes cardPulse{0%,100%{box-shadow:0 0 0px var(--purple)} 50%{box-shadow:0 0 25px var(--purple)}}
+  .card h3{margin:0 0 8px 0;font-size:16px;text-align:center;color:#e2e8f0;font-weight:400}
+
+  .stage-wrap{width:100%;max-width:var(--stage-w);margin:8px auto 0;}
+  .stage{width:100%;height:auto;aspect-ratio:4/3;display:block;
+         background:#0b1220;border:1px solid var(--border);border-radius:10px}
+
+  .space-boundary{fill:none;stroke:var(--space);stroke-width:2;stroke-dasharray:8 6;opacity:.95}
+  .node{fill:#e2e8f0}
+  .math-text{fill:#e2e8f0;font:400 30px/1.2 system-ui,sans-serif;text-anchor:middle;dominant-baseline:central}
+  .label-purple{fill:var(--purple);font-weight:400;paint-order:stroke fill;stroke:#0b1220;stroke-width:4px;stroke-linejoin:round}
+  .label-purple.highlight{animation:pulse 2s ease-in-out 4}
+  @keyframes pulse{0%,100%{opacity:1;filter:drop-shadow(0 0 0px var(--purple))} 50%{opacity:0.6;filter:drop-shadow(0 0 12px var(--purple))}}
+  .eq-green{fill:var(--green);font-weight:400;animation:blink 3s ease-in-out 3}
+  @keyframes blink{0%,100%{opacity:1} 50%{opacity:0.3}}
+  .teal{stroke:var(--teal);stroke-width:2.6;fill:none}
+  .magenta{stroke:var(--magenta);stroke-width:2.6;fill:none}
+
+  .mathbox{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif !important;color:#e5e7eb;font-style:normal;text-align:left;direction:ltr}
+  .mathbox *{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif !important}
+  .mathbox .blk{margin:10px 0 2px}.mathbox .big{font-size:19px}.mathbox .eq{font-size:19px;line-height:1.5}
+  .mathbox i,.mathbox sup,.mathbox sub{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif !important}
+  .mathbox i{font-style:italic}
+  .arrow{display:inline-block;transform:none;margin:0 .2em}
+
+  .calc{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif !important;color:#e5e7eb}
+  .calc *{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif !important}
+  .calc .sec{border:1px dashed var(--border); border-radius:10px; padding:10px; background:#0c1526; margin-top:10px}
+  .calc .head{font-weight:400; margin-bottom:6px; color:#cbd5e1}
+  .calc .eq{font-size:19px; line-height:1.5}
+  .hl-teal{color:var(--teal); font-weight:400; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif !important}
+  .hl-magenta{color:var(--magenta); font-weight:400; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif !important}
+  .hl-green{color:var(--green); font-weight:400; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif !important}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap title">
+    <h1>העתקה לינארית - המחשה - שמירה על כפל בסקלר: L(α·u) = α·L(u)</h1>
+    <div class="controls">
+      <button id="prevBtn">הקודם</button>
+      <button id="playBtn">הפעל</button>
+      <button id="pauseBtn" style="display:none">עצור</button>
+      <button id="nextBtn">הבא</button>
+      <button id="resetBtn">איפוס</button>
+      <span id="stepText" class="note">שלב 1 מתוך 7</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="grid3">
+    <aside class="card">
+      <h3>הגדרת האופרטור</h3>
+      <div class="mathbox">
+        <div class="eq big blk">[<i>L</i>] : <i>C</i><sup>2</sup>(<i>I</i>) <span class="arrow">➜</span> <i>C</i>(<i>I</i>)</div>
+        <div class="eq blk">( <i>L y</i> )( <i>x</i> ) =</div>
+        <div class="eq"><i>y</i>″(<i>x</i>) + <i>p</i>(<i>x</i>) · <i>y</i>′(<i>x</i>) + <i>q</i>(<i>x</i>) · <i>y</i>(<i>x</i>)</div>
+      </div>
+    </aside>
+
+    <section class="card">
+      <h3>אנימציה</h3>
+      <div class="controls" style="justify-content:center;gap:12px;margin:8px 0">
+        <div><label class="note">בחרו u:</label>
+          <select id="func1Select">
+            <option value="general">u (כללי)</option><option value="sin">sin(x)</option>
+            <option value="cos">cos(x)</option><option value="exp">eˣ</option><option value="poly">x²</option>
+          </select>
+        </div>
+        <div><label class="note">סקלר α:</label>
+          <input id="alphaInput" type="number" step="0.1" min="-5" max="5" value="2" style="width:70px">
+        </div>
+        <div><label class="note">מהירות</label>
+          <input id="speed" type="number" step="0.1" min="0.5" max="3" value="1" style="width:70px">
+        </div>
+      </div>
+
+      <div class="stage-wrap">
+        <svg id="svg" class="stage" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="mTeal" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Q3.5,5 0,0Z" fill="#11a8a0"/></marker>
+            <marker id="mMagenta" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Q3.5,5 0,0Z" fill="#f472b6"/></marker>
+          </defs>
+          <g id="gSpaces"></g><g id="gArrows"></g><g id="gPoints"></g><g id="gLabels"></g>
+        </svg>
+      </div>
+
+      <div class="wrap" style="padding:0;max-width:none">
+        <input id="slider" type="range" min="1" max="7" value="1" step="1" style="width:min(100%,600px);accent-color:#2563eb">
+      </div>
+    </section>
+
+    <aside class="card">
+      <h3>חישוב פעולת האופרטור</h3>
+      <div class="calc">
+        <div class="sec"><div class="head">1) אופרטור על כל פונקציה:</div>
+          <div class="eq"><span class="mono">L[y] = y″ + p(x)·y′ + q(x)·y</span></div></div>
+        <div class="sec" id="calcScalar">
+          <div class="head">2) חישוב L(α·u)</div>
+          <div class="eq" id="eq_alpha_u"></div>
+        </div>
+        <div class="sec" id="calcDirect">
+          <div class="head">3) חישוב α·L(u)</div>
+          <div class="eq" id="eq_Lu"></div>
+          <div class="eq" id="eq_alpha_Lu" style="margin-top:6px"></div>
+        </div>
+        <div class="sec">
+          <div class="head">4) שוויון לינאריות - הוצאת הסקלר</div>
+          <div class="eq"><span class="hl-teal">L(α·u)</span> <span style="color:#e5e7eb">=</span>
+            <span class="hl-magenta">α·L(u)</span></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script>
+/* ========= בסיס ========= */
+const F = {sin:'sin(x)', cos:'cos(x)', exp:'e^x', poly:'x²'};
+function pt(id,x,y,label){ return {type:'pt',id,x,y,label}; }
+function arr(id,kind,x1,y1,x2,y2){ return {type:'arr',id,kind,x1,y1,x2,y2}; }
+const steps = {
+  1:{spaces:true},
+  2:{spaces:true, els:[pt('u1',230,460,'u')]},
+  3:{spaces:true, els:[pt('u1',230,460,'u'), pt('au1',450,460,'α·u')]},
+  4:{spaces:true, els:[pt('u1',230,460,'u'), pt('au1',450,460,'α·u'),
+                       pt('Lau1',450,150,'L(α·u)'),
+                       arr('aU','teal',450,454,450,156)]},
+  5:{spaces:true, els:[pt('u1',230,460,'u'), pt('au1',450,460,'α·u'),
+                       pt('Lau1',450,150,'L(α·u)'), pt('Lu1',230,150,'L(u)'),
+                       arr('aU','teal',450,454,450,156),
+                       arr('a1','magenta',230,454,230,156)]},
+  6:{spaces:true, els:[pt('u1',230,460,'u'), pt('au1',450,460,'α·u'),
+                       pt('Lau1',450,150,'L(α·u)'), pt('Lu1',230,150,'L(u)'),
+                       pt('aLu1',450,100,'α·L(u)'),
+                       arr('aU','teal',450,454,450,156),
+                       arr('a1','magenta',230,454,230,156),
+                       arr('a2','magenta',236,150,444,100)]},
+  7:{spaces:true, showEq:true, els:[pt('u1',230,460,'u'), pt('au1',450,460,'α·u'),
+                       pt('Lau1',450,150,'L(α·u) = α·L(u)'), pt('Lu1',230,150,'L(u)'),
+                       pt('aLu1',450,100,'α·L(u)'),
+                       arr('aU','teal',450,454,450,156),
+                       arr('a1','magenta',230,454,230,156),
+                       arr('a2','magenta',236,150,444,100)]}
+};
+
+/* שכבות SVG */
+const gSpaces=document.getElementById('gSpaces');
+const gArrows=document.getElementById('gArrows');
+const gPoints=document.getElementById('gPoints');
+const gLabels=document.getElementById('gLabels');
+
+/* מצב ו־UI */
+let current=1, minStep=1, maxStep=7, playing=false, timer=null, lastEls=[];
+const slider=document.getElementById('slider');
+const stepText=document.getElementById('stepText');
+const playBtn=document.getElementById('playBtn');
+const pauseBtn=document.getElementById('pauseBtn');
+const prevBtn=document.getElementById('prevBtn');
+const nextBtn=document.getElementById('nextBtn');
+const resetBtn=document.getElementById('resetBtn');
+const speedInput=document.getElementById('speed');
+const f1Sel=document.getElementById('func1Select');
+const alphaInput=document.getElementById('alphaInput');
+
+/* גזירות ותצוגת L */
+function d1(name){ switch(name){ case'sin':return'cos(x)'; case'cos':return'−sin(x)'; case'exp':return'eˣ'; case'poly':return'2x'; default:return"u′(x)"; } }
+function d2(name){ switch(name){ case'sin':return'−sin(x)'; case'cos':return'−cos(x)'; case'exp':return'eˣ'; case'poly':return'2';  default:return"u″(x)"; } }
+function labelOf(name){ return name==='poly'?'x²':(name==='exp'?'eˣ':((name==='sin'||name==='cos')?name+'(x)':'u')); }
+
+function computePanel(){
+  const f1=f1Sel.value;
+  const alpha=parseFloat(alphaInput.value)||2;
+  const alphaStr = alpha===1?'':alpha===-1?'−':(alpha<0?`(${alpha})`:`${alpha}`);
+  const y1=(f1==='general')?'u(x)':labelOf(f1), y1p=(f1==='general')?'u′(x)':d1(f1), y1pp=(f1==='general')?'u″(x)':d2(f1);
+  
+  // L(α·u)
+  const au = (f1==='general')?`α·u(x)`:`${alphaStr}·${labelOf(f1)}`;
+  const aup = (f1==='general')?`α·u′(x)`:`${alphaStr}·${d1(f1)}`;
+  const aupp = (f1==='general')?`α·u″(x)`:`${alphaStr}·${d2(f1)}`;
+  const Lau = `L(α·u) = ${aupp} + p(x)·${aup} + q(x)·${au}`;
+  
+  // L(u)
+  const Lu = `L(u) = ${y1pp} + p(x)·${y1p} + q(x)·${y1}`;
+  
+  // α·L(u)
+  const aLu = `α·L(u) = α·[${y1pp} + p(x)·${y1p} + q(x)·${y1}]`;
+  
+  document.getElementById('eq_alpha_u').innerHTML=`<span class="hl-teal">${Lau}</span>`;
+  document.getElementById('eq_Lu').innerHTML=`<span class="hl-magenta">${Lu}</span>`;
+  document.getElementById('eq_alpha_Lu').innerHTML=`<span class="hl-magenta">${aLu}</span>`;
+}
+
+/* רנדר + אנימציית חיצים */
+function render(step){
+  const s=steps[step]; if(!s) return;
+  const f1=f1Sel.value;
+  const alpha=parseFloat(alphaInput.value)||2;
+  const alphaStr = Math.abs(alpha-1)<0.01?'':Math.abs(alpha+1)<0.01?'−':(alpha<0?`(${alpha.toFixed(1)})`:`${alpha.toFixed(1)}`);
+  const L1=(f1!=='general');
+  
+  const mapLabel=(lab)=>{
+    if(lab==='u'&&L1) return labelOf(f1);
+    if(lab==='α·u'&&L1) return `${alphaStr}·${labelOf(f1)}`;
+    if(lab==='L(u)'&&L1) return `L(${labelOf(f1)})`;
+    if(lab==='L(α·u)'&&L1) return `L(${alphaStr}·${labelOf(f1)})`;
+    if(lab==='α·L(u)'&&L1) return `${alphaStr}·L(${labelOf(f1)})`;
+    if(lab==='L(α·u) = α·L(u)'&&L1) return `L(${alphaStr}·${labelOf(f1)}) = ${alphaStr}·L(${labelOf(f1)})`;
+    if(lab==='α·u') return `${alphaStr}·u`;
+    if(lab==='α·L(u)') return `${alphaStr}·L(u)`;
+    return lab;
+  };
+
+  gSpaces.innerHTML = s.spaces ? `
+    <ellipse cx="400" cy="150" rx="330" ry="90" class="space-boundary"/>
+    <ellipse cx="400" cy="460" rx="330" ry="90" class="space-boundary"/>
+    <text x="80" y="150" class="math-text">W</text>
+    <text x="80" y="460" class="math-text">U</text>
+    <defs>
+      <marker id="mWhite" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 Q3.5,5 0,0Z" fill="#e2e8f0"/>
+      </marker>
+    </defs>
+    <line x1="140" y1="400" x2="140" y2="210" stroke="#e2e8f0" stroke-width="2.5" marker-end="url(#mWhite)"/>
+    <text x="160" y="305" fill="#e2e8f0" font-size="28" font-weight="400" font-family="system-ui,sans-serif" font-style="italic">L</text>` : '';
+
+  gArrows.innerHTML=''; gPoints.innerHTML=''; gLabels.innerHTML='';
+  (s.els||[]).forEach(el=>{
+    if(el.type==='arr'){
+      const cls=el.kind==='teal'?'teal':'magenta';
+      const marker=el.kind==='teal'?'mTeal':'mMagenta';
+      const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',el.x1); line.setAttribute('y1',el.y1);
+      line.setAttribute('x2',el.x2); line.setAttribute('y2',el.y2);
+      line.setAttribute('class',cls); line.setAttribute('marker-end',`url(#${marker})`);
+      line.dataset.id=el.id; gArrows.appendChild(line);
+    }else{
+      const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx',el.x); c.setAttribute('cy',el.y-4); c.setAttribute('r',5.5); c.setAttribute('class','node');
+      gPoints.appendChild(c);
+      const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x',el.x); t.setAttribute('y',el.y+18); 
+      const classes = 'math-text label-purple' + (step===7 && el.label.includes('=') ? ' highlight' : '');
+      t.setAttribute('class', classes);
+      t.textContent=mapLabel(el.label); gLabels.appendChild(t);
+    }
+  });
+
+  if(s.showEq){
+    const eq=document.createElementNS('http://www.w3.org/2000/svg','text');
+    eq.setAttribute('x',400); eq.setAttribute('y',36); eq.setAttribute('class','math-text eq-green');
+    eq.textContent='L(α·u) = α·L(u)'; gLabels.appendChild(eq);
+  }
+
+  const prevIds=new Set((lastEls||[]).filter(e=>e.type==='arr').map(e=>e.id));
+  const speed=Math.max(0.5,Math.min(3,parseFloat(speedInput.value)||1));
+  const dur=900/speed;
+  Array.from(gArrows.querySelectorAll('line')).forEach(line=>{
+    const justAdded=!prevIds.has(line.dataset.id);
+    if(justAdded){
+      const len=Math.hypot(line.x2.baseVal.value-line.x1.baseVal.value, line.y2.baseVal.value-line.y1.baseVal.value);
+      line.style.strokeDasharray=len; line.style.strokeDashoffset=len;
+      const t0=performance.now();
+      (function anim(ts){ const p=Math.min(1,(ts-t0)/dur);
+        line.style.strokeDashoffset=(1-p)*len;
+        if(p<1) requestAnimationFrame(anim); else line.style.strokeDasharray=''; })(t0);
+    }
+  });
+  lastEls=s.els||[];
+  computePanel();
+  
+  // הבהוב של ריבוע החישובים בשלב 7
+  if(step===7){
+    calcCard.classList.remove('pulse');
+    setTimeout(()=>calcCard.classList.add('pulse'), 50);
+  } else {
+    calcCard.classList.remove('pulse');
+  }
+}
+
+/* שליטה */
+const calcCard = document.querySelector('.card:last-child');
+function setRange(){
+  current=1; render(current); updateUI();
+  calcCard.classList.remove('flash');
+  setTimeout(()=>calcCard.classList.add('flash'), 10);
+}
+function updateUI(){
+  slider.value=current;
+  stepText.textContent=`שלב ${current-minStep+1} מתוך ${maxStep-minStep+1}`;
+  prevBtn.disabled=current===minStep; nextBtn.disabled=current===maxStep;
+}
+function play(){
+  if(playing) return; playing=true; playBtn.style.display='none'; pauseBtn.style.display='inline-block';
+  const sp=Math.max(0.5,Math.min(3,parseFloat(speedInput.value)||1));
+  timer=setInterval(()=>{ if(current<maxStep){ current++; render(current); updateUI(); } else pause(); },1200/sp);
+}
+function pause(){ playing=false; playBtn.style.display='inline-block'; pauseBtn.style.display='none'; if(timer){clearInterval(timer); timer=null;} }
+
+/* אירועים */
+prevBtn.addEventListener('click',()=>{ pause(); if(current>minStep){ current--; render(current); updateUI(); }});
+nextBtn.addEventListener('click',()=>{ pause(); if(current<maxStep){ current++; render(current); updateUI(); }});
+resetBtn.addEventListener('click',()=>{ pause(); current=minStep; render(current); updateUI(); });
+slider.addEventListener('input',e=>{ pause(); current=parseInt(e.target.value,10)||minStep; render(current); updateUI(); });
+playBtn.addEventListener('click',play); pauseBtn.addEventListener('click',pause);
+f1Sel.addEventListener('change',()=>{ pause(); setRange(); });
+alphaInput.addEventListener('change',()=>{ pause(); setRange(); });
+
+/* התחלה */
+render(current); updateUI(); computePanel();
+
+// הבהוב ראשוני של כפתורים אינטראקטיביים
+setTimeout(()=>{
+  playBtn.classList.add('blink');
+  f1Sel.classList.add('blink');
+  alphaInput.classList.add('blink');
+  setTimeout(()=>{
+    playBtn.classList.remove('blink');
+    f1Sel.classList.remove('blink');
+    alphaInput.classList.remove('blink');
+  }, 6000);
+}, 500);
+</script>
+</body>
+</html>
