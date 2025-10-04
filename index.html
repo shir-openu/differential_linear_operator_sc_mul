@@ -136,16 +136,16 @@
         <div class="sec"><div class="head">1) אופרטור על כל פונקציה:</div>
           <div class="eq"><span class="mono">L[y] = y″ + p(x)·y′ + q(x)·y</span></div></div>
         <div class="sec" id="calcScalar">
-          <div class="head">2) חישוב L(α·u)</div>
+          <div class="head" id="calc_head_2">2) חישוב L(α·u)</div>
           <div class="eq" id="eq_alpha_u"></div>
         </div>
         <div class="sec" id="calcDirect">
-          <div class="head">3) חישוב α·L(u)</div>
+          <div class="head" id="calc_head_3">3) חישוב α·L(u)</div>
           <div class="eq" id="eq_Lu"></div>
           <div class="eq" id="eq_alpha_Lu" style="margin-top:6px"></div>
         </div>
         <div class="sec">
-          <div class="head">4) שוויון לינאריות - הוצאת הסקלר</div>
+          <div class="head" id="calc_head_4">4) שוויון לינאריות - הוצאת הסקלר</div>
           <div class="eq"><span class="hl-teal">L(α·u)</span> <span style="color:#e5e7eb">=</span>
             <span class="hl-magenta">α·L(u)</span></div>
         </div>
@@ -175,18 +175,16 @@ const steps = {
                        arr('a1','magenta',200,454,200,156)]},
   6:{spaces:true, els:[pt('u1',200,460,'u'), pt('au1',450,460,'α·u'),
                        pt('Lau1',550,150,'L(α·u)'), pt('Lu1',200,150,'L(u)'),
-                       pt('aLu1',550,100,'α·L(u)'),
                        arr('aH','teal',206,460,444,460),
                        arr('aU','teal',450,454,550,156),
                        arr('a1','magenta',200,454,200,156),
-                       arr('a2','magenta',206,150,544,100)]},
+                       arr('a2','magenta',206,150,544,150)]},
   7:{spaces:true, showEq:true, els:[pt('u1',200,460,'u'), pt('au1',450,460,'α·u'),
                        pt('Lau1',550,150,'L(α·u) = α·L(u)'), pt('Lu1',200,150,'L(u)'),
-                       pt('aLu1',550,100,'α·L(u)'),
                        arr('aH','teal',206,460,444,460),
                        arr('aU','teal',450,454,550,156),
                        arr('a1','magenta',200,454,200,156),
-                       arr('a2','magenta',206,150,544,100)]}
+                       arr('a2','magenta',206,150,544,150)]}
 };
 
 /* שכבות SVG */
@@ -216,24 +214,29 @@ function labelOf(name){ return name==='poly'?'x²':(name==='exp'?'eˣ':((name===
 function computePanel(){
   const f1=f1Sel.value;
   const alpha=parseFloat(alphaInput.value)||2;
-  const alphaStr = alpha===1?'':alpha===-1?'−':(alpha<0?`(${Number.isInteger(alpha)?alpha:alpha.toFixed(1)})`:`${Number.isInteger(alpha)?alpha:alpha.toFixed(1)}`);
+  const displayAlpha = Number.isInteger(alpha) ? alpha : alpha.toFixed(1);
+  const alphaStr = alpha===1?'':alpha===-1?'−':(alpha<0?`(${displayAlpha})`:`${displayAlpha}`);
   const y1=(f1==='general')?'u(x)':labelOf(f1), y1p=(f1==='general')?'u′(x)':d1(f1), y1pp=(f1==='general')?'u″(x)':d2(f1);
   
   // L(α·u)
-  const au = (f1==='general')?`α·u(x)`:`${alphaStr}·${labelOf(f1)}`;
-  const aup = (f1==='general')?`α·u′(x)`:`${alphaStr}·${d1(f1)}`;
-  const aupp = (f1==='general')?`α·u″(x)`:`${alphaStr}·${d2(f1)}`;
-  const Lau = `L(α·u) = ${aupp} + p(x)·${aup} + q(x)·${au}`;
+  const au = (f1==='general')?`${displayAlpha}·u(x)`:`${alphaStr}·${labelOf(f1)}`;
+  const aup = (f1==='general')?`${displayAlpha}·u′(x)`:`${alphaStr}·${d1(f1)}`;
+  const aupp = (f1==='general')?`${displayAlpha}·u″(x)`:`${alphaStr}·${d2(f1)}`;
+  const Lau = `L(${displayAlpha}·u) = ${aupp} + p(x)·${aup} + q(x)·${au}`;
   
   // L(u)
   const Lu = `L(u) = ${y1pp} + p(x)·${y1p} + q(x)·${y1}`;
   
   // α·L(u)
-  const aLu = `α·L(u) = α·[${y1pp} + p(x)·${y1p} + q(x)·${y1}]`;
+  const aLu = `${displayAlpha}·L(u) = ${displayAlpha}·[${y1pp} + p(x)·${y1p} + q(x)·${y1}]`;
   
   document.getElementById('eq_alpha_u').innerHTML=`<span class="hl-teal">${Lau}</span>`;
   document.getElementById('eq_Lu').innerHTML=`<span class="hl-magenta">${Lu}</span>`;
   document.getElementById('eq_alpha_Lu').innerHTML=`<span class="hl-magenta">${aLu}</span>`;
+  document.getElementById('calc_head_2').textContent=`2) חישוב L(${displayAlpha}·u)`;
+  document.getElementById('calc_head_3').textContent=`3) חישוב ${displayAlpha}·L(u)`;
+  const eq4 = document.querySelector('#calc_head_4').nextElementSibling;
+  eq4.innerHTML = `<span class="hl-teal">L(${displayAlpha}·u)</span> <span style="color:#e5e7eb">=</span> <span class="hl-magenta">${displayAlpha}·L(u)</span>`;
 }
 
 /* רנדר + אנימציית חיצים */
@@ -245,14 +248,18 @@ function render(step){
   const L1=(f1!=='general');
   
   const mapLabel=(lab)=>{
+    const actualAlpha = Number.isInteger(alpha) ? alpha : alpha.toFixed(1);
+    const displayAlpha = alpha === 1 ? '' : alpha === -1 ? '−' : (alpha < 0 ? `(${actualAlpha})` : actualAlpha);
+    
     if(lab==='u'&&L1) return labelOf(f1);
     if(lab==='α·u'&&L1) return `${alphaStr}·${labelOf(f1)}`;
+    if(lab==='α·u') return `${alphaStr}·u`;
     if(lab==='L(u)'&&L1) return `L(${labelOf(f1)})`;
     if(lab==='L(α·u)'&&L1) return `L(${alphaStr}·${labelOf(f1)})`;
-    if(lab==='L(α·u) = α·L(u)'&&L1) return `L(${alphaStr}·${labelOf(f1)}) = ${alphaStr}·L(${labelOf(f1)})`;
     if(lab==='α·L(u)'&&L1) return `${alphaStr}·L(${labelOf(f1)})`;
-    if(lab==='α·u') return `${alphaStr}·u`;
     if(lab==='α·L(u)') return `${alphaStr}·L(u)`;
+    if(lab==='L(α·u) = α·L(u)'&&L1) return `L(${displayAlpha}·${labelOf(f1)}) = ${displayAlpha}·L(${labelOf(f1)})`;
+    if(lab==='L(α·u) = α·L(u)') return `L(${displayAlpha}·u) = ${displayAlpha}·L(u)`;
     return lab;
   };
 
@@ -292,9 +299,12 @@ function render(step){
   });
 
   if(s.showEq){
+    const alpha=parseFloat(alphaInput.value)||2;
+    const displayAlpha = Number.isInteger(alpha) ? alpha : alpha.toFixed(1);
+    const eqText = `L(${displayAlpha}·u) = ${displayAlpha}·L(u)`;
     const eq=document.createElementNS('http://www.w3.org/2000/svg','text');
     eq.setAttribute('x',400); eq.setAttribute('y',36); eq.setAttribute('class','math-text eq-green');
-    eq.textContent='L(α·u) = α·L(u)'; gLabels.appendChild(eq);
+    eq.textContent=eqText; gLabels.appendChild(eq);
   }
 
   const prevIds=new Set((lastEls||[]).filter(e=>e.type==='arr').map(e=>e.id));
@@ -349,7 +359,13 @@ resetBtn.addEventListener('click',()=>{ pause(); current=minStep; render(current
 slider.addEventListener('input',e=>{ pause(); current=parseInt(e.target.value,10)||minStep; render(current); updateUI(); });
 playBtn.addEventListener('click',play); pauseBtn.addEventListener('click',pause);
 f1Sel.addEventListener('change',()=>{ pause(); setRange(); });
-alphaInput.addEventListener('change',()=>{ pause(); setRange(); });
+alphaInput.addEventListener('input',()=>{ 
+  pause(); 
+  render(current); 
+  updateUI();
+  calcCard.classList.remove('flash');
+  setTimeout(()=>calcCard.classList.add('flash'), 10);
+});
 
 /* התחלה */
 render(current); updateUI(); computePanel();
