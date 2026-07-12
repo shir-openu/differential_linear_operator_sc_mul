@@ -387,6 +387,8 @@ setTimeout(()=>{
     alphaInput.classList.remove('blink');
   }, 6000);
 }, 500);
+  /* AUTO-PLAY on load */
+  setTimeout(function(){ try{ play(); }catch(e){} }, 1200);
 </script>
 </body>
 </html>
